@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { canConnect } from "./pikachu-algorithm";
 import { db } from "./firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -53,12 +53,6 @@ export default function PikachuBoard() {
   const [win, setWin] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [cellStatus, setCellStatus] = useState({}); // {"x-y": "correct"|"wrong"}
-  const audioRefs = {
-    correct: useRef(),
-    wrong: useRef(),
-    win: useRef(),
-    lose: useRef(),
-  };
 
   useEffect(() => {
     if (player) {
@@ -91,14 +85,12 @@ export default function PikachuBoard() {
       if (first.x === x && first.y === y) return;
       if (grid[first.y][first.x] !== grid[y][x]) {
         setCellStatus({ [`${x}-${y}`]: "wrong", [`${first.x}-${first.y}`]: "wrong" });
-        audioRefs.wrong.current && audioRefs.wrong.current.play();
         setTimeout(() => setCellStatus({}), 400);
         setSelected([{ x, y }]);
         return;
       }
       if (canConnect(grid, first.x, first.y, x, y)) {
         setCellStatus({ [`${x}-${y}`]: "correct", [`${first.x}-${first.y}`]: "correct" });
-        audioRefs.correct.current && audioRefs.correct.current.play();
         setTimeout(() => setCellStatus({}), 400);
         const newGrid = grid.map((row, j) =>
           row.map((cell, i) =>
@@ -110,7 +102,6 @@ export default function PikachuBoard() {
         setSelected([]);
       } else {
         setCellStatus({ [`${x}-${y}`]: "wrong", [`${first.x}-${first.y}`]: "wrong" });
-        audioRefs.wrong.current && audioRefs.wrong.current.play();
         setTimeout(() => setCellStatus({}), 400);
         setSelected([]);
       }
@@ -161,10 +152,6 @@ export default function PikachuBoard() {
           🎉 Hoàn thành level {level + 1}! <button onClick={() => setLevel((l) => Math.min(l + 1, LEVELS.length - 1))}>Tiếp tục</button>
         </div>
       )}
-      <audio ref={audioRefs.correct} src="/sounds/correct.mp3" preload="auto" />
-      <audio ref={audioRefs.wrong} src="/sounds/wrong.mp3" preload="auto" />
-      <audio ref={audioRefs.win} src="/sounds/win.mp3" preload="auto" />
-      <audio ref={audioRefs.lose} src="/sounds/lose.mp3" preload="auto" />
       <div className="pikachu-board">
         {grid &&
           grid.map((row, y) =>
