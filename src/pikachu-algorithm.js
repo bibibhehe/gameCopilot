@@ -26,6 +26,10 @@ export function canConnect(grid, x1, y1, x2, y2) {
     queue.push([x1, y1, d, 0]);
     visited[y1][x1][d] = true;
   }
+  // Xử lý đặc biệt cho ô liền kề (ngang hoặc dọc)
+  if ((x1 === x2 && Math.abs(y1 - y2) === 1) || (y1 === y2 && Math.abs(x1 - x2) === 1)) {
+    return true;
+  }
   while (queue.length) {
     const [x, y, dir, turns] = queue.shift();
     let nx = x + dirs[dir][0];
