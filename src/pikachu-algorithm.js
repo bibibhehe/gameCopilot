@@ -2,48 +2,48 @@
 // Returns true if connectable, false otherwise
 // grid: 2D array, 0 = empty, >0 = pokemon id
 // (x1, y1), (x2, y2): coordinates of two tiles
-// Thuật toán BFS kiểm tra mọi đường đi hợp lệ (chữ I, L, U, Z), cho phép đi qua viền ngoài
+// Sửa triệt để: mở rộng lưới, BFS cho phép đi ra ngoài biên
 export function canConnect(grid, x1, y1, x2, y2) {
   if (x1 === x2 && y1 === y2) return false;
   if (grid[y1][x1] !== grid[y2][x2] || grid[y1][x1] === 0) return false;
   const h = grid.length;
   const w = grid[0].length;
+  // Tạo lưới mở rộng (bọc ngoài 1 lớp 0)
+  const ext = Array.from({ length: h + 2 }, (_, y) =>
+    Array.from({ length: w + 2 }, (_, x) =>
+      y === 0 || y === h + 1 || x === 0 || x === w + 1 ? 0 : grid[y - 1][x - 1]
+    )
+  );
+  // Tọa độ mới trên lưới mở rộng
+  const sx = x1 + 1, sy = y1 + 1, ex = x2 + 1, ey = y2 + 1;
   // 4 hướng
   const dirs = [
-    [0, 1], // xuống
-    [1, 0], // phải
-    [0, -1], // lên
-    [-1, 0], // trái
+    [0, 1], [1, 0], [0, -1], [-1, 0]
   ];
   // visited[y][x][turns]: đã đi đến (x, y) với số lần rẽ là turns chưa
-  const visited = Array.from({ length: h }, () =>
-    Array.from({ length: w }, () => Array(3).fill(false))
+  const visited = Array.from({ length: h + 2 }, () =>
+    Array.from({ length: w + 2 }, () => Array(3).fill(false))
   );
   // Hàng đợi: [x, y, turns, prevDir]
   const queue = [];
-  queue.push([x1, y1, 0, -1]);
+  queue.push([sx, sy, 0, -1]);
   while (queue.length) {
     const [x, y, turns, prevDir] = queue.shift();
-    // Nếu đã vượt quá 2 lần rẽ thì bỏ qua
     if (turns > 2) continue;
-    // Đến đích
-    if (x === x2 && y === y2) return true;
+    if (x === ex && y === ey) return true;
     for (let d = 0; d < 4; d++) {
       let nx = x + dirs[d][0];
       let ny = y + dirs[d][1];
-      // Nếu đổi hướng thì tăng turns
       let newTurns = prevDir === -1 || prevDir === d ? turns : turns + 1;
-      // Duyệt liên tục theo hướng d
       while (
-        nx >= 0 && nx < w && ny >= 0 && ny < h &&
-        (grid[ny][nx] === 0 || (nx === x2 && ny === y2))
+        nx >= 0 && nx < w + 2 && ny >= 0 && ny < h + 2 &&
+        (ext[ny][nx] === 0 || (nx === ex && ny === ey))
       ) {
         if (!visited[ny][nx][newTurns]) {
           visited[ny][nx][newTurns] = true;
           queue.push([nx, ny, newTurns, d]);
         }
-        // Nếu đã đến đích
-        if (nx === x2 && ny === y2) break;
+        if (nx === ex && ny === ey) break;
         nx += dirs[d][0];
         ny += dirs[d][1];
       }
