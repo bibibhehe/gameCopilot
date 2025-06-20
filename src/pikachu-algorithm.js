@@ -20,33 +20,39 @@ export function canConnect(grid, x1, y1, x2, y2) {
   const dirs = [
     [0, 1], [1, 0], [0, -1], [-1, 0]
   ];
-  // visited[y][x][turns]: đã đi đến (x, y) với số lần rẽ là turns chưa
+  // visited[y][x][turns][dir]: đã đi đến (x, y) với số lần rẽ và hướng dir chưa
   const visited = Array.from({ length: h + 2 }, () =>
-    Array.from({ length: w + 2 }, () => Array(3).fill(false))
+    Array.from({ length: w + 2 }, () =>
+      Array.from({ length: 3 }, () => Array(4).fill(false))
+    )
   );
-  // Hàng đợi: [x, y, turns, prevDir]
+  // Hàng đợi: [x, y, turns, dir]
   const queue = [];
-  queue.push([sx, sy, 0, -1]);
+  // Bắt đầu từ 4 hướng tại điểm xuất phát
+  for (let d = 0; d < 4; d++) {
+    visited[sy][sx][0][d] = true;
+    queue.push([sx, sy, 0, d]);
+  }
   while (queue.length) {
-    const [x, y, turns, prevDir] = queue.shift();
-    if (turns > 2) continue;
-    if (x === ex && y === ey) return true;
-    for (let d = 0; d < 4; d++) {
-      let nx = x + dirs[d][0];
-      let ny = y + dirs[d][1];
-      let newTurns = prevDir === -1 || prevDir === d ? turns : turns + 1;
-      while (
-        nx >= 0 && nx < w + 2 && ny >= 0 && ny < h + 2 &&
-        (ext[ny][nx] === 0 || (nx === ex && ny === ey))
-      ) {
-        if (!visited[ny][nx][newTurns]) {
-          visited[ny][nx][newTurns] = true;
-          queue.push([nx, ny, newTurns, d]);
+    const [x, y, turns, dir] = queue.shift();
+    let nx = x + dirs[dir][0];
+    let ny = y + dirs[dir][1];
+    let newTurns = turns;
+    while (
+      nx >= 0 && nx < w + 2 && ny >= 0 && ny < h + 2 &&
+      (ext[ny][nx] === 0 || (nx === ex && ny === ey))
+    ) {
+      if (nx === ex && ny === ey && newTurns <= 2) return true;
+      for (let nd = 0; nd < 4; nd++) {
+        let nextTurns = nd === dir ? newTurns : newTurns + 1;
+        if (nextTurns > 2) continue;
+        if (!visited[ny][nx][nextTurns][nd]) {
+          visited[ny][nx][nextTurns][nd] = true;
+          queue.push([nx, ny, nextTurns, nd]);
         }
-        if (nx === ex && ny === ey) break;
-        nx += dirs[d][0];
-        ny += dirs[d][1];
       }
+      nx += dirs[dir][0];
+      ny += dirs[dir][1];
     }
   }
   return false;
