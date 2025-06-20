@@ -24,7 +24,8 @@ export function canConnect(grid, x1, y1, x2, y2) {
     return false;
   }
 
-  // 0 turn
+  // 0 turn (liền kề)
+  if ((x1 === x2 && Math.abs(y1 - y2) === 1) || (y1 === y2 && Math.abs(x1 - x2) === 1)) return true;
   if (isClear(x1, y1, x2, y2)) return true;
 
   // 1 turn
